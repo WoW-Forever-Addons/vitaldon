@@ -3,7 +3,7 @@
 ## Notes: Health and power text on the default unit frames (player, target, focus, pet, party, target of target, boss, optional raid-style party and raid frames). Works with secret values in combat.
 ## Notes-deDE: Gesundheits- und Energietext auf den Standard-Einheitenfenstern (Spieler, Ziel, Fokus, Begleiter, Gruppe, Ziel des Ziels, Bosse, wahlweise Gruppen- und Schlachtzugsfenster im Schlachtzugsstil). Funktioniert mit gesperrten Werten im Kampf.
 ## Author: DonCoohd
-## Version: 1.0.0
+## Version: 1.0.1
 ## X-Curse-Project-ID: 1723682
 ## Category: Unit Frames
 ## Category-deDE: Einheitenfenster
