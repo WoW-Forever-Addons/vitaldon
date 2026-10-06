@@ -50,13 +50,15 @@ end
 ns.Curve = Curve
 
 -- Own short form for readable numbers when the client has no abbreviation.
--- (1.10) The decimal separator follows the client (DECIMAL_SEPARATOR, a
--- constant of the game, only read): 1,2M in German. Rounding that reaches
+-- (1.10) The decimal separator follows the client (DECIMAL_SEPERATOR, Blizzard's
+-- spelling of the constant, only read): 1,2M in German. Rounding that reaches
 -- 1000 moves to the next unit: 999,999 is 1M (up to 1.9: 1000k), 999.96M is
 -- 1B (up to 1.9: 1000M).
 local function DecimalSeparator()
-  local d = _G.DECIMAL_SEPARATOR
-  if type(d) == "string" and ns.Usable(d) and d ~= "" then return d end
+  for _, name in ipairs({ "DECIMAL_SEPERATOR", "DECIMAL_SEPARATOR" }) do
+    local d = rawget(_G, name)
+    if type(d) == "string" and ns.Usable(d) and d ~= "" then return d end
+  end
   return "."
 end
 

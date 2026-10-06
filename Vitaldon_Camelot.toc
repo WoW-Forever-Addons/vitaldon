@@ -2,11 +2,25 @@
 ## Title: |cff3fa9f5Vital|rdon
 ## Notes: Health and power text on the default unit frames (player, target, focus, pet, party, target of target, boss, optional raid-style party and raid frames). Works with secret values in combat.
 ## Notes-deDE: Gesundheits- und Energietext auf den Standard-Einheitenfenstern (Spieler, Ziel, Fokus, Begleiter, Gruppe, Ziel des Ziels, Bosse, wahlweise Gruppen- und Schlachtzugsfenster im Schlachtzugsstil). Funktioniert mit gesperrten Werten im Kampf.
+## Notes-frFR: Texte de vie et d’énergie sur les portraits d’unités par défaut (joueur, cible, focalisation, familier, groupe, cible de la cible, boss et, en option, fenêtres de groupe de type raid et fenêtres de raid). Fonctionne en combat avec les valeurs secrètes.
+## Notes-esES: Texto de salud y de recursos en los marcos de unidad predeterminados (jugador, objetivo, foco, mascota, grupo, objetivo de objetivo, jefes y, opcionalmente, marcos de grupo estilo banda y de banda). Funciona con valores secretos en combate.
+## Notes-esMX: Texto de salud y de poder en los marcos de unidades predeterminados (jugador, objetivo, enfoque, mascota, grupo, objetivo de objetivo, jefes y, de forma opcional, marcos de grupo estilo banda y de banda). Funciona con valores secretos en combate.
+## Notes-ptBR: Texto de vida e de recurso nos quadros de unidade padrão (jogador, alvo, foco, ajudante, grupo, alvo do alvo, chefes e, opcionalmente, quadros de grupo estilo raide e quadros de raide). Funciona com valores bloqueados em combate.
+## Notes-ruRU: Текст здоровья и ресурса на стандартных рамках портретов (игрок, цель, запомненная цель, питомец, группа, цель выбранной цели, боссы, по желанию рейдовые рамки группы и рамки рейда). Работает с секретными значениями в бою.
+## Notes-koKR: 기본 개체창(플레이어, 대상, 주시 대상, 소환수, 파티, 대상의 대상, 우두머리, 선택 시 공격대창 형태의 파티창과 공격대창)에 생명력 및 자원 텍스트를 표시합니다. 전투 중 비밀 수치에서도 작동합니다.
+## Notes-zhTW: 在預設的單位框架上顯示生命力與能量文字(玩家、目標、專注目標、寵物、隊伍、目標的目標、首領，另可選用團隊風格的隊伍框架與團隊框架)。戰鬥中的受限數值也能正常顯示。
 ## Author: DonCoohd
 ## Version: 1.0.1
 ## X-Curse-Project-ID: 1723682
 ## Category: Unit Frames
 ## Category-deDE: Einheitenfenster
+## Category-frFR: Portraits d’unités
+## Category-esES: Marcos de unidad
+## Category-esMX: Marcos de unidades
+## Category-ptBR: Quadros de unidade
+## Category-ruRU: Рамки портретов
+## Category-koKR: 개체창
+## Category-zhTW: 單位框架
 ## IconTexture: Interface\Icons\Spell_Holy_FlashHeal
 ## SavedVariables: VitaldonDB
 ## AddonCompartmentFunc: Vitaldon_OnAddonCompartmentClick
@@ -14,6 +28,13 @@
 
 Locales\enUS.lua
 Locales\deDE.lua
+Locales\frFR.lua
+Locales\esES.lua
+Locales\esMX.lua
+Locales\ptBR.lua
+Locales\ruRU.lua
+Locales\koKR.lua
+Locales\zhTW.lua
 Core.lua
 Style.lua
 Values.lua

@@ -87,6 +87,7 @@ L["Tools"] = "Werkzeuge"
 
 -- Status and tools
 L["Version %s"] = "Version %s"
+L["Version"] = "Version"
 L["Bars found: %d of %d"] = "Leisten gefunden: %d von %d"
 L["Blizzard's status text is on and may overlap. Use the button below to turn it off."] = "Der Statustext von Blizzard ist an und kann sich überlagern. Mit dem Knopf unten schaltest du ihn aus."
 L["Blizzard's status text is off."] = "Der Statustext von Blizzard ist aus."

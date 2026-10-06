@@ -97,6 +97,15 @@ ns.FONT_FILES = {
   friz = "Fonts\\FRIZQT__.TTF", arialn = "Fonts\\ARIALN.TTF",
   skurri = "Fonts\\SKURRI.TTF", morpheus = "Fonts\\MORPHEUS.TTF",
 }
+-- These four files only have Latin letters. The Russian, Korean and Chinese clients write the
+-- number abbreviations in their own script (Т, 만, 萬), so there only Blizzard's font is offered.
+do
+  local loc = type(GetLocale) == "function" and GetLocale()
+  if loc == "ruRU" or loc == "koKR" or loc == "zhTW" or loc == "zhCN" then
+    ns.FONTS = { "default" }
+    ns.FONT_FILES = {}
+  end
+end
 
 local function FallbackFont()
   local obj = GameFontNormal
