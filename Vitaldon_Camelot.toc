@@ -10,7 +10,7 @@
 ## Notes-koKR: 기본 개체창(플레이어, 대상, 주시 대상, 소환수, 파티, 대상의 대상, 우두머리, 선택 시 공격대창 형태의 파티창과 공격대창)에 생명력 및 자원 텍스트를 표시합니다. 전투 중 비밀 수치에서도 작동합니다.
 ## Notes-zhTW: 在預設的單位框架上顯示生命力與能量文字(玩家、目標、專注目標、寵物、隊伍、目標的目標、首領，另可選用團隊風格的隊伍框架與團隊框架)。戰鬥中的受限數值也能正常顯示。
 ## Author: DonCoohd
-## Version: 1.0.1
+## Version: 1.1.0
 ## X-Curse-Project-ID: 1723682
 ## Category: Unit Frames
 ## Category-deDE: Einheitenfenster
