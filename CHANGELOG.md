@@ -1,5 +1,9 @@
 # Changes
 
+## 1.1.1
+
+- **Look:** windows and buttons use the shared style of the Don addons (same as Questdon, Guildon, Luredon).
+
 ## 1.1.0
 
 - **Translations:** French, Spanish (Spain and Latin America), Brazilian Portuguese, Russian, Korean and Traditional Chinese.
