@@ -1,4 +1,4 @@
-# Vitaldon 1.0.0 (WoW Forever)
+# Vitaldon 1.1.2 (WoW Forever)
 
 Text auf den Gesundheits- und Energieleisten (Mana, Wut, Energie, Fokus) der Standard-Einheitenfenster von Blizzard für World of Warcraft: Forever (Client "Camelot", Interface 16001).
 
@@ -12,8 +12,8 @@ Unter `/vd` > Einheiten lässt sich jede Gruppe einzeln schalten:
 - An (Standard): Spieler, Ziel, Fokus, Begleiter, Gruppe (party1 bis party4) und Bossfenster (boss1 bis boss5, bei Bossbegegnungen).
 - Aus (Standard): Ziel des Ziels (gilt für Ziel und Fokus), Gruppenfenster im Schlachtzugsstil und Schlachtzugsfenster.
 - Fahrzeuge und Gedankenkontrolle: Zeigt Blizzards Spielerfenster das Fahrzeug, zeigt Vitaldon dort dessen Werte (am Begleiterfenster deine eigenen). Vitaldon liest dafür nur, welche Einheit das Blizzard-Fenster gerade zeigt.
-- Gruppenfenster im Schlachtzugsstil (Bearbeitungsmodus: "Gruppenfenster im Schlachtzugsstil" an, dazu die Option in Vitaldon): Text auf den fünf Gesundheitsleisten. Vitaldon liest die angezeigte Einheit und folgt Umsortierungen innerhalb einer Viertelsekunde.
-- Schlachtzugsfenster (bis 40 Spieler, mit und ohne "Gruppen zusammenhalten"): Blizzard baut sie erst bei Bedarf, Vitaldon findet neue bei Gruppenänderungen und alle 2 Sekunden. Ihre Werte werden viermal pro Sekunde aufgefrischt.
+- Gruppenfenster im Schlachtzugsstil (Bearbeitungsmodus: "Gruppenfenster im Schlachtzugsstil" an, dazu die Option in Vitaldon): Text auf den fünf Gesundheitsleisten. Vitaldon liest die angezeigte Einheit und folgt Umsortierungen innerhalb einer halben Sekunde.
+- Schlachtzugsfenster (bis 40 Spieler, mit und ohne "Gruppen zusammenhalten"): Blizzard baut sie erst bei Bedarf, Vitaldon findet neue bei Gruppenänderungen und alle 2 Sekunden. Ihre Werte werden zweimal pro Sekunde aufgefrischt.
 - Auf beiden Arten von Schlachtzugsfenstern gibt es nur Gesundheitstext (die Energieleisten sind zu flach), mit eigenem Format je Gruppe. Tot und Offline zeigt Blizzard dort selbst, Vitaldons Text bleibt dann leer. Zeigt Blizzards Schlachtzugsprofil seinen eigenen Gesundheitstext, können sich beide überlagern: im Profil auf "Keiner" stellen (`/vd diag` warnt dann).
 - Arenafenster gibt es im Forever-Client nicht. Die Begleiter- und Zielfenster innerhalb der Schlachtzugsfenster zeigen den Text nur, wenn Blizzard sie als `CompactRaidFrame` anzeigt.
 
@@ -123,7 +123,7 @@ Geprüft gegen Blizzards Quellcode (Gethe/wow-ui-source, Zweig "forever", zuletz
 - Schlachtzugsfenster: `CompactRaidFrame1..80.healthBar` und `CompactRaidGroup1..8Member1..5.healthBar` (Blizzard_CompactRaidFrameContainer.lua, Shared/CompactRaidGroup.xml)
 - Arenafenster: im Forever-Client nicht geladen (Blizzard_UnitFrame.toc: `CompactArenaFrame` mit `ExcludeLoadGameType camelot`)
 
-Fehlt eine Leiste, sucht Vitaldon beim Betreten der Welt, bei Gruppenänderungen und alle 2 Sekunden erneut. Begleiter, Ziel des Ziels und Ziel des Fokus werden zusätzlich viermal pro Sekunde aufgefrischt, weil der Client für sie nicht zuverlässig Ereignisse sendet.
+Fehlt eine Leiste, sucht Vitaldon beim Betreten der Welt, bei Gruppenänderungen und alle 2 Sekunden erneut. Begleiter, Ziel des Ziels und Ziel des Fokus werden zusätzlich zweimal pro Sekunde aufgefrischt, weil der Client für sie nicht zuverlässig Ereignisse sendet.
 
 ## Noch nicht im Spiel geprüft
 - Ob `AbbreviateNumbers`, `BreakUpLargeNumbers` und `SetFormattedText` gesperrte Werte im Forever-Client wirklich annehmen (laut warcraft.wiki.gg ja, `BreakUpLargeNumbers` dort nicht ausdrücklich gelistet).
@@ -135,7 +135,7 @@ Fehlt eine Leiste, sucht Vitaldon beim Betreten der Welt, bei Gruppenänderungen
 - Fahrzeug: ob `PlayerFrame.unit` in Forever auf "vehicle" wechselt (sonst entscheidet `UnitHasVehicleUI`).
 - Ob alle vier Schriftdateien (`FRIZQT__`, `ARIALN`, `SKURRI`, `MORPHEUS`) im Forever-Client unter `Fonts\` liegen.
 - `EDIT_MODE_LAYOUTS_UPDATED` gibt es laut Quellcode im Zweig "forever" (Blizzard_EditMode/Shared/EditModeManager.lua). Es kommt beim Laden und Speichern eines Layouts, nicht während des Ziehens; beim Verschieben und Skalieren folgt der Text der Leiste ohnehin.
-- Bossfenster: ob Forever-Begegnungen Blizzards Bossfenster zeigen und ob `INSTANCE_ENCOUNTER_ENGAGE_UNIT` kommt (sonst erscheint der Text über die Prüfung viermal pro Sekunde).
+- Bossfenster: ob Forever-Begegnungen Blizzards Bossfenster zeigen und ob `INSTANCE_ENCOUNTER_ENGAGE_UNIT` kommt (sonst erscheint der Text über die Prüfung zweimal pro Sekunde).
 - Schilde: ob `UnitGetTotalAbsorbs` im Forever-Client gesperrt liefert und ob `C_StringUtil.TruncateWhenZero` / `C_StringUtil.WrapString` gesperrte Werte aus Addon-Code annehmen (laut warcraft.wiki.gg in Forever 1.60.1 bzw. 12.1 vorhanden, Verhalten mit gesperrten Werten nicht dokumentiert).
 - Druidenmana: ob `UnitPower("player", Enum.PowerType.Mana)` in Katzen- und Bärengestalt im Kampf lesbar oder gesperrt ist, und ob die Manazeile neben langen Energietexten genug Platz hat.
 - Aussehen: ob Schatten und das Grau der Details (`|cffc4c8cf`) auf allen Leistenfarben gut lesbar sind, und ob Farbcodes in `SetFormattedText` mit gesperrten Werten im Forever-Client wie erwartet angezeigt werden.

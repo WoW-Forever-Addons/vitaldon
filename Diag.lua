@@ -395,9 +395,14 @@ function ns.DiagModel()
 end
 
 -- StyleKit errors (tooltips, clicks in the window) go to Vitaldon's error
--- list in /vd diag instead of staying silent.
+-- list in /vd diag instead of staying silent. The kit is shared (DonCore):
+-- the handler of an addon loaded earlier is kept and called as well.
 if ns.Style then
-  ns.Style.onError = function(where, err) ns.RecordError("kit:" .. tostring(where), err) end
+  local before = ns.Style.onError
+  ns.Style.onError = function(where, err)
+    ns.RecordError("kit:" .. tostring(where), err)
+    if before then pcall(before, where, err) end
+  end
 end
 
 local function WindowStore()

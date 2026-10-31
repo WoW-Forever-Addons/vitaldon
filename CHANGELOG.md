@@ -1,5 +1,11 @@
 # Changes
 
+## 1.1.2
+
+- **No new addon needed.** Vitaldon works on its own as before.
+- **Lighter:** the values still change at once on the game's events; the regular check now runs twice a second instead of four times. Raid-style party frames follow a new order within half a second.
+- **Shared base:** options and window style come from DonCore, the common base of the Don addons. Nothing changes for you.
+
 ## 1.1.1
 
 - **Look:** windows and buttons use the shared style of the Don addons (same as Questdon, Guildon, Luredon).

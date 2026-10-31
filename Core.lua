@@ -1,5 +1,7 @@
 local addonName, ns = ...
 local L = ns.L
+ns.Style = LibStub("DonCore-1.0"):Get("Style", 3) -- shared kit from DonCore (Libs\DonCore\Style.lua)
+LibStub("DonCore-1.0"):Get("Settings", 1):Attach(addonName, ns) -- Blizzard options from DonCore (Libs\DonCore\Settings.lua)
 
 -- Flat keys: SettingsUI.lua registers every key directly on ns.db.
 ns.defaults = {

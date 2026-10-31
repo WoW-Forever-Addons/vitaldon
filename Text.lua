@@ -47,6 +47,11 @@ for _, key in ipairs(ns.FORMATS) do VALID_FORMAT[key] = true end
 -- Full layer scan at the latest after this many seconds per bar.
 local SAFETY_SCAN = 5
 ns.SAFETY_SCAN = SAFETY_SCAN
+-- (D20, 31.10.2026) Ticker interval: half a second (a quarter up to 1.8.x).
+-- Events update the values at once; the ticker only catches frames that
+-- appear, hide or move and the polled units (targettarget, focustarget, pet).
+local TICK = 0.5
+ns.TICK = TICK
 
 -- Setting key of the format override per group, built once (1.6: no
 -- string concatenation on every tick and event).
@@ -810,7 +815,8 @@ local function Resolve(entry)
     entry.anchoredTo, entry.strata, entry.level, entry.scale, entry.barLevel = nil, nil, nil, nil, nil
     SyncLayout(entry)
     -- Safety scans of all bars spread over the 5 seconds (one slot per
-    -- quarter second by entry number); syncs on events keep this phase.
+    -- quarter second by entry number, run on the next tick); syncs on events
+    -- keep this phase.
     entry.scanDue = now + SAFETY_SCAN + (entry.index % (SAFETY_SCAN * 4)) * 0.25
     ApplyStyle(entry)
     FindDeadTexts(entry)
@@ -957,7 +963,7 @@ local function Build()
   for _, def in ipairs(ns.UnitDefs()) do AddEntries(def) end
   ns.ResolveAll()
   ns.RefreshAll()
-  ns.ticker = ns.NewTicker(0.25, Tick)
+  ns.ticker = ns.NewTicker(TICK, Tick)
 end
 ns.OnInit(Build)
 
@@ -1025,7 +1031,7 @@ end, { player = true })
 -- Party frames: search again only where Blizzard replaced a bar (roster
 -- updates come often in raids).
 -- (1.6) Compact frames too: Blizzard may build them now and changes the
--- units they show (the ticker also notices that within a quarter second).
+-- units they show (the ticker also notices that within half a second).
 local ROSTER_GROUPS = { showParty = true, showCompactParty = true, showRaid = true }
 ns.On("GROUP_ROSTER_UPDATE", function()
   DiscoverRaid()
