@@ -1,5 +1,15 @@
 # Changes
 
+## 1.2.0
+
+- **New look:** the diagnostics window (`/vd diag`) in the style of the Don addons: tabs Overview, Bars, Values and Errors, problems on top with a button where Vitaldon can fix them, the bars as a table with their details on the right, the report in the shared copy window.
+- **Live preview:** the options window shows your player frame and your target with sample values in your settings. Every change shows at once; with the mouse on a frame group's option you see that group.
+- **Colours:** "By health" uses the green, yellow and red of the Don addons; class colours are the same as in the other Don addons (the shaman is blue in Classic Era too).
+- **One options window for all Don addons:** switches, sliders, lists, a picture and an explanation for every option, a search over all Don addons. The gear button and the slash command open it on this addon's section. Blizzard's AddOns page only shows the status and a button.
+- **Window size:** all Don windows share one scale, 80 % by default, set from 60 to 110 % under General > Window in the options window. Saved window sizes are reset once, places stay.
+- **Addon list:** the addon has its own logo in the game's addon list.
+- **Update note:** new files, so restart the game after updating (a /reload is not enough).
+
 ## 1.1.2
 
 - **No new addon needed.** Vitaldon works on its own as before.

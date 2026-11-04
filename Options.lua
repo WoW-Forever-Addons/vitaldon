@@ -156,18 +156,21 @@ function ns.RunPreview()
   end
 end
 
+-- Tool "Turn off Blizzard's status text", also the button of the hint in the diagnostics window.
+function ns.TurnOffStatusTextTool()
+  local ok, why = ns.TurnOffBlizzardStatusText()
+  if ok then
+    ns.Print(L["Blizzard's status text is now off (Options > Interface > Status text: None)."])
+  elseif why == "combat" then
+    ns.Print(L["Not possible in combat. Try again after the fight."])
+  else
+    ns.Print(L["Could not change Blizzard's status text. Set Options > Interface > Status text to None."])
+  end
+  Refresh()
+end
+
 local TOOLS = {
-  { "Turn off Blizzard's status text", "Turn off", function()
-      local ok, why = ns.TurnOffBlizzardStatusText()
-      if ok then
-        ns.Print(L["Blizzard's status text is now off (Options > Interface > Status text: None)."])
-      elseif why == "combat" then
-        ns.Print(L["Not possible in combat. Try again after the fight."])
-      else
-        ns.Print(L["Could not change Blizzard's status text. Set Options > Interface > Status text to None."])
-      end
-      Refresh()
-    end, "Sets Blizzard's option Status text to None, so only Vitaldon's text is on the bars. You can change it back under Options > Interface." },
+  { "Turn off Blizzard's status text", "Turn off", function() ns.TurnOffStatusTextTool() end, "Sets Blizzard's option Status text to None, so only Vitaldon's text is on the bars. You can change it back under Options > Interface." },
   { "Find unit frames again", "Search", function()
       ns.ResolveAll()
       Refresh()
@@ -185,12 +188,151 @@ local TOOLS = {
 
 for _, t in ipairs(TOOLS) do t[3] = ns.Guard("tool", t[3]) end
 
+-- (01.11.2026, StyleKit 2 step 3) the commands, shown under the status on the Tools tab of the shared options window
+local function Help()
+  local lines = {}
+  for _, c in ipairs(ns.COMMANDS or {}) do lines[#lines + 1] = c[1] .. "  " .. L[c[2]] end
+  return table.concat(lines, "\n")
+end
+
+---------------------------------------------------------------------------
+-- (02.11.2026, StyleKit 2 step 4, docs/layout_2026-11-02/vitaldon/, approved by Daniel) The preview card of the shared
+-- options window: your player frame and a second frame (the target, or the group whose row the mouse is on) with sample
+-- values in the current settings: format, style, colour, font, size, outline, shadow, position, absorb shield, druid mana.
+-- Vitaldon's own text functions draw it (ns.ApplyStyle, ns.ApplyText), so it is the text the bars get. DonCore's Options
+-- (minor 3) calls page.preview(frame, width, height) on every page.
+---------------------------------------------------------------------------
+local PREVIEW_OTHER = { health = { 4700, 10000, 47, 5300 }, power = { 30, 100, 30, 70 }, absorb = nil }
+local PREVIEW_RAGE = { 40, 100, 40, 60 }
+local BAR_COLOR = { health = { 0.1, 0.72, 0.15 }, mana = { 0.15, 0.35, 0.95 }, rage = { 0.8, 0.12, 0.12 } }
+local HEALTH_H, POWER_H, LABEL_H, GAP = 18, 12, 14, 2
+
+-- the group of the option row under the mouse (format, hide at full health, unit switch), else nil
+local function HoveredGroup()
+  local Core = LibStub and LibStub("DonCore-1.0", true)
+  local O = Core and Core:Get("Options", 1)
+  local e = O and O.state and O.state.hovered
+  local key = e and e.spec and e.spec.id == "Vitaldon" and e.key
+  if type(key) ~= "string" then return nil end
+  local id = key:match("^healthFormat(%u%a+)$") or key:match("^powerFormat(%u%a+)$") or key:match("^hideFull(%u%a+)$")
+  for _, g in ipairs(ns.GROUPS) do
+    if (id and g.id == id) or g.key == key then return g end
+  end
+end
+
+local function Bar(parent, color)
+  local b = CreateFrame("Frame", nil, parent)
+  b.bg = b:CreateTexture(nil, "BACKGROUND")
+  b.bg:SetAllPoints(b)
+  b.bg:SetColorTexture(0, 0, 0, 0.7)
+  b.fill = b:CreateTexture(nil, "ARTWORK")
+  b.fill:SetPoint("TOPLEFT", b, "TOPLEFT", 0, 0)
+  b.fill:SetPoint("BOTTOMLEFT", b, "BOTTOMLEFT", 0, 0)
+  b.fill:SetColorTexture(color[1], color[2], color[3], 1)
+  return b
+end
+
+local function Block(f, i)
+  f.vdBlocks = f.vdBlocks or {}
+  local u = f.vdBlocks[i]
+  if u then return u end
+  u = {}
+  u.label = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  u.label:SetJustifyH("LEFT")
+  u.health = Bar(f, BAR_COLOR.health)
+  u.power = Bar(f, BAR_COLOR.mana)
+  local base = ns.FallbackFont and ns.FallbackFont()
+  u.h = { kind = "health", overlay = u.health, fs = u.health:CreateFontString(nil, "OVERLAY"), baseFont = base, opts = {} }
+  u.p = { kind = "power", overlay = u.power, fs = u.power:CreateFontString(nil, "OVERLAY"), baseFont = base, opts = {} }
+  if i == 1 then u.p.altFs = u.power:CreateFontString(nil, "OVERLAY") end
+  f.vdBlocks[i] = u
+  return u
+end
+
+-- one text in the current settings with fixed values
+local function Fill(entry, group, values, absorb)
+  local db = ns.db
+  entry.group = group.key
+  ns.ApplyStyle(entry)
+  local on = db[group.key] and (entry.kind == "health" and db.showHealth or entry.kind == "power" and db.showPower)
+  if not on then entry.fs:SetText("") return end
+  local o = entry.opts
+  o.abbreviate, o.decimals, o.stateText = db.abbreviate, db.percentDecimals, db.stateText
+  o.color, o.style = db.textColor, db.textStyle == "mono" and "mono" or "clear"
+  if o.color == "class" then o.classR, o.classG, o.classB = ns.ClassColor("player") end
+  o.values, o.preview = values, true
+  o.absorbs, o.previewAbsorb = db.showAbsorbs and entry.kind == "health", absorb
+  ns.ApplyText(entry.fs, "player", entry.kind, ns.GroupFormat(entry.kind, group.key), o)
+end
+
+local function Place(u, f, y, w, group, values, druid)
+  u.label:ClearAllPoints()
+  u.label:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -y)
+  u.label:SetWidth(w)
+  u.label:SetText(L[group.name] .. (ns.db[group.key] and "" or (" (" .. L["off"] .. ")")))
+  y = y + LABEL_H + GAP
+  for _, part in ipairs({ { u.health, HEALTH_H, values.health[3] }, { u.power, POWER_H, druid and PREVIEW_RAGE[3] or values.power[3] } }) do
+    local bar, h, pct = part[1], part[2], part[3]
+    bar:ClearAllPoints()
+    bar:SetPoint("TOPLEFT", f, "TOPLEFT", 0, -y)
+    bar:SetSize(w, h)
+    bar.fill:SetWidth(math.max(1, math.floor(w * pct / 100)))
+    y = y + h + GAP
+  end
+  local c = druid and BAR_COLOR.rage or BAR_COLOR.mana
+  u.power.fill:SetColorTexture(c[1], c[2], c[3], 1)
+  Fill(u.h, group, values.health, values.absorb)
+  -- compact frames: health only
+  if group.healthOnly then u.power:Hide() u.p.fs:SetText("") else u.power:Show() Fill(u.p, group, druid and PREVIEW_RAGE or values.power) end
+  if u.p.altFs then
+    local alt = u.p.altFs
+    if druid and not group.healthOnly then
+      local side = ns.db.powerAlign == "RIGHT" and "LEFT" or "RIGHT"
+      alt:ClearAllPoints()
+      alt:SetPoint(side, u.power, side, side == "LEFT" and 4 or -4, 0)
+      alt:SetFont(u.p.fontFile or u.p.baseFont, u.p.curSize or 11, u.p.flags or "")
+      local o = u.p.altOpts or {}
+      u.p.altOpts = o
+      o.abbreviate, o.decimals, o.style, o.preview = ns.db.abbreviate, ns.db.percentDecimals, "mono", true
+      o.values = ns.PREVIEW_VALUES.mana
+      ns.ApplyText(alt, "player", "power", ns.AltFormat(), o)
+      alt:SetTextColor(ns.MANA_COLOR[1], ns.MANA_COLOR[2], ns.MANA_COLOR[3])
+    else
+      alt:SetText("")
+    end
+  end
+  return y
+end
+
+function ns.DrawPreview(f, w, h)
+  if not (ns.db and ns.ApplyStyle and ns.ApplyText and ns.PREVIEW_VALUES) then return end
+  local groups = ns.GROUPS
+  local other = HoveredGroup()
+  if not other or other.key == "showPlayer" then other = groups[2] end
+  local bw = math.max(40, math.min(w, 220))
+  local x = math.floor((w - bw) / 2)
+  local inner = f.vdInner
+  if not inner then inner = CreateFrame("Frame", nil, f) f.vdInner = inner end
+  inner:ClearAllPoints()
+  inner:SetPoint("TOPLEFT", f, "TOPLEFT", x, -8)
+  inner:SetSize(bw, h - 8)
+  local pv = ns.PREVIEW_VALUES
+  local druid = ns.db.druidMana and ns.PlayerClass and ns.PlayerClass() == "DRUID"
+  local y = Place(Block(inner, 1), inner, 0, bw, groups[1], { health = pv.health, power = pv.power, absorb = pv.absorb }, druid)
+  Place(Block(inner, 2), inner, y + 10, bw, other, PREVIEW_OTHER, false)
+end
+
 local function Build()
-  category = ns.BuildSettings({ name = "Vitaldon", status = Status, tools = TOOLS, pages = PAGES })
+  for _, page in ipairs(PAGES) do page.preview = ns.DrawPreview end
+  ns.settingsPages = PAGES
+  category = ns.BuildSettings({ name = "Vitaldon", status = Status, tools = TOOLS, pages = PAGES, help = Help })
   ns.settingsCategory = category ~= nil
 end
 
+-- (01.11.2026) DonCore's options window of all Don addons (no Blizzard panel, so also in combat); Blizzard's settings
+-- only when that window is not there (an older DonCore), and those stay closed in combat.
 function ns.OpenOptions()
+  if ns.OpenDonOptions and ns.OpenDonOptions() then return end
   if InCombatLockdown and InCombatLockdown() then
     ns.Print(L["Options cannot be opened in combat."])
     return

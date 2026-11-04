@@ -527,6 +527,9 @@ local function ApplyStyle(entry)
   end
 end
 
+-- (02.11.2026) also for the preview card of the options window (Options.lua): the same font, size, outline, shadow and place
+ns.ApplyStyle, ns.FallbackFont = ApplyStyle, FallbackFont
+
 local function BarVisible(bar)
   if not bar then return false end
   return Visible(bar)
@@ -631,6 +634,7 @@ local PREVIEW = {
   absorb = 3400,
 }
 local PREVIEW_SECONDS = 5
+ns.PREVIEW_VALUES = PREVIEW
 
 local function PreviewActive(entry)
   if entry.unit ~= "player" or not ns.previewUntil then return false end
@@ -679,6 +683,7 @@ local function AltFormat()
   if type(f) == "string" and VALID_FORMAT[f] then return f end
   return "percent"
 end
+ns.AltFormat, ns.PlayerClass = AltFormat, PlayerClass
 
 local function UpdateAlt(entry, unit, preview, opts)
   local alt = entry.altFs

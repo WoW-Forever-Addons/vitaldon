@@ -279,3 +279,18 @@ L["Hide"] = "숨기기"
 L["Hides the health text of this frame at full health. 'Like general setting' follows Hide at full health on the Text page. Only works when the game lets addons read the values (mostly out of combat), otherwise the text stays."] = "생명력이 가득 차면 이 창의 생명력 텍스트를 숨깁니다. \"공통 설정 사용\"은 \"텍스트\" 설정의 \"생명력이 가득 차면 숨기기\"를 따릅니다. 애드온이 값을 읽을 수 있을 때만(대개 전투 중이 아닐 때) 작동하며, 그 외에는 텍스트가 그대로 표시됩니다."
 L["bar transparent (frame faded)"] = "바 투명 (창 흐려짐)"
 L["Alpha bar / text"] = "투명도 (바 / 텍스트)"
+
+-- DonCore's Settings and options window (01.11.2026): Blizzard's short page and the Tools tab (from Luredon)
+L["Options"] = "설정"
+
+-- (02.11.2026, StyleKit 2 step 4) diagnostics window from DonCore's Kit
+L["Overview"] = "개요"
+L["Unit"] = "개체"
+L["Size"] = "크기"
+L["Copy report"] = "보고서 복사"
+L["health only"] = "생명력만"
+L["Bars found"] = "찾은 바"
+L["Pick a bar in the list."] = "목록에서 바를 선택하세요."
+L["Click a bar for its path, layer, font size and alpha."] = "바를 클릭하면 경로, 계층, 글자 크기, 투명도를 보여 줍니다."
+L["Select all"] = "모두 선택"
+L["Ctrl+A, Ctrl+C copies the report, e.g. for a bug report."] = "Ctrl+A, Ctrl+C로 보고서를 복사합니다(예: 오류 신고용)."

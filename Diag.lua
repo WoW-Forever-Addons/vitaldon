@@ -222,9 +222,10 @@ local STATE_COLOR = { shown = "good", hidden = "textSecondary", missing = "criti
 -- Sections for the window: { title, rows = { { label, value, color, tip, hint } | { text = ..., color = ... } } }
 function ns.DiagModel()
   local model = {}
-  local function Section(title) local s = { title = title, rows = {} }; model[#model + 1] = s; return s end
+  -- (02.11.2026) key: the window's tab of a section (general and features on Overview)
+  local function Section(title, key) local s = { title = title, key = key, rows = {} }; model[#model + 1] = s; return s end
 
-  local general = Section(L["General"])
+  local general = Section(L["General"], "general")
   local build = ns.Call(GetBuildInfo)
   general.rows[#general.rows + 1] = { L["Version"], ns.Version() }
   general.rows[#general.rows + 1] = { L["Client"], ns.Usable(build) and tostring(build) or "?" }
@@ -256,7 +257,7 @@ function ns.DiagModel()
     bbf.loaded and L["Vitaldon keeps its text above the bar's fill. Details per bar in the Bars section."] or nil }
 
   -- Bars: one row per unit (health and power together)
-  local bars = Section(L["Bars"])
+  local bars = Section(L["Bars"], "bars")
   local order, byUnit = {}, {}
   local found, total = 0, 0
   for _, entry in ipairs(ns.entries or {}) do
@@ -327,11 +328,25 @@ function ns.DiagModel()
     local hint = problem == "layer" and L["Turn on Always keep text in front (/vd > General)."]
       or (problem == "restyled" and L["Vitaldon only shows text on Blizzard's own bars. Use the other addon's text for this frame."] or nil)
     local color = problem and "warning" or (fallback and state ~= "missing" and "warning" or STATE_COLOR[state])
-    bars.rows[#bars.rows + 1] = { label, value, color, tip, hint }
+    -- (02.11.2026) the columns of the window's bar table: unit, health, power, font size, layer
+    local function StateCell(e, s)
+      if not e then return { L["health only"], "textHint" } end
+      if s ~= "missing" and e.pathIndex and e.pathIndex > 1 then return { L["fallback path"], "warning" } end
+      return { L[STATE_LABEL[s]], STATE_COLOR[s] }
+    end
+    local function SizeText(e) return e and e.bar and e.shown and e.curSize and tostring(e.curSize) or "-" end
+    local layer = { "-" }
+    local ly = (h and Layer(h)) or (pw and Layer(pw))
+    if problem == "restyled" then layer = { L["replaced by another addon"], "warning" }
+    elseif problem == "layer" then layer = { L["may be covered"], "warning" }
+    elseif ly then layer = { L[LAYER_LABEL[ly.state] or "above the bar"], ly.state == "unknown" and "textSecondary" or "good" } end
+    bars.rows[#bars.rows + 1] = { label, value, color, tip, hint, unit = unit, cells = {
+      { label }, StateCell(h, hs), StateCell(pw, BarState(pw)),
+      { pw and (SizeText(h) .. " / " .. SizeText(pw)) or SizeText(h) }, layer } }
   end
 
   -- Values: readable or secret, per existing unit
-  local values = Section(L["Values"])
+  local values = Section(L["Values"], "values")
   local none = {}
   for _, unit in ipairs(order) do
     local compact = byUnit[unit].health and byUnit[unit].health.compact
@@ -357,7 +372,7 @@ function ns.DiagModel()
 
   -- Features
   local db = ns.db or {}
-  local features = Section(L["Features"])
+  local features = Section(L["Features"], "features")
   local mana = ns.Num(ns.Lookup("Enum.PowerType.Mana")) or 0
   local manaState = not db.druidMana and L["off"] or (ns.AltManaWanted and ns.AltManaWanted("player") and L["shown"] or L["not needed"])
   features.rows[#features.rows + 1] = { L["Druid mana"], manaState, nil,
@@ -377,7 +392,7 @@ function ns.DiagModel()
     overlap and L["Blizzard's own health text on these frames may overlap. Raid profile option Display health text: None."] or nil }
 
   -- Errors
-  local errSec = Section(L["Errors"])
+  local errSec = Section(L["Errors"], "errors")
   local errors = ns.Errors()
   if #errors == 0 then
     errSec.rows[#errSec.rows + 1] = { L["Errors"], L["none"], "good" }
@@ -411,78 +426,380 @@ local function WindowStore()
   return db.diagWindow
 end
 
-local function BuildPanel()
-  local Style = ns.Style
-  local panel = Style.Panel("VitaldonDiagPanel", UIParent, {
-    title = Style.Wordmark("Vital", "don") .. "  " .. Style.Colorize(L["Diagnostics"], "textSecondary"),
-    width = 340,
-    close = true,
-    closeTooltip = L["Close"],
-    get = function(key) return WindowStore()[key] end,
-    set = function(key, value) WindowStore()[key] = value end,
-    defaultPoint = { "CENTER", "CENTER", 0, 80 },
-    strata = "DIALOG",
-  })
-  return panel
-end
+---------------------------------------------------------------------------
+-- (02.11.2026, StyleKit 2 step 4, docs/layout_2026-11-02/vitaldon/) The diagnostics window from DonCore's Kit: Kit.Window
+-- with the tabs Overview, Bars, Values, Errors; a hero with the bars found, the problems as hint lines (with a button where
+-- Vitaldon can fix it), the bars as a table with their details on the right (over the table under 960 px), the report in
+-- the shared copy box (Kit.ShowCopy). Same facts as the chat output (ns.DiagModel). Without the Kit: chat.
+---------------------------------------------------------------------------
+local function GetKit() return ns.GetKit(7) end
 
--- Report to copy (Ctrl+A, Ctrl+C) for bug reports: our own scroll frame
--- with an edit box, placed in the window through Style.Content. Typing does
--- not change the text, Escape leaves the box.
-local REPORT_HEIGHT = 96
-local function Report(panel)
-  if panel._vdReport then return panel._vdReport end
-  local scroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")
-  local box = CreateFrame("EditBox", nil, scroll)
-  box:SetMultiLine(true)
-  box:SetAutoFocus(false)
-  box:SetFontObject("GameFontHighlightSmall")
-  box:SetWidth(290)
-  box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-  box:SetScript("OnTextChanged", function(self, user)
-    if user and self._vdText then self:SetText(self._vdText) end
-  end)
-  scroll:SetScrollChild(box)
-  panel._vdReport = { scroll = scroll, box = box }
-  return panel._vdReport
-end
-
-local function Fill(panel)
-  local Style = ns.Style
-  panel:ClearRows()
-  for _, section in ipairs(ns.DiagModel()) do
-    Style.Header(panel, section.title)
-    for _, r in ipairs(section.rows) do
-      local row
-      if r.text then
-        row = Style.Row(panel):SetText(r.text, r.color or "textPrimary")
-      else
-        row = Style.KeyValue(panel, r[1], r[2], r[3])
-      end
-      local tip, hint, title = r.tip or r[4], r[5], r.text or r[1]
-      if row and (tip or hint) then
-        row:SetTooltip(function() return title, tip, hint end)
-      end
+-- Kit errors (clicks, tooltips in the window) also go to the error list; the handler of an addon loaded earlier stays.
+do
+  local Kit = GetKit()
+  if Kit then
+    local before = Kit.onError
+    Kit.onError = function(where, err)
+      ns.RecordError("kit:" .. tostring(where), err)
+      if before then pcall(before, where, err) end
     end
   end
-  if Style.Content then
-    Style.Header(panel, L["Report to copy"])
-    local rep = Report(panel)
-    rep.box._vdText = table.concat(ns.DiagLines(), "\n")
-    rep.box:SetText(rep.box._vdText)
-    Style.Content(panel, rep.scroll, REPORT_HEIGHT)
+end
+
+local TABS = { { "overview", "Overview" }, { "bars", "Bars" }, { "values", "Values" }, { "errors", "Errors" } }
+local TITLES = { overview = "Overview", bars = "Bars", values = "Values", errors = "Errors" }
+-- detail card width; a table narrower than NARROW_COLS keeps unit, health and power (size and layer in the row tooltip):
+-- the five columns need 120 + 110 + 110 + 56 + 110, the gaps and the edges
+local DETAIL_W, NARROW_COLS = 300, 561
+
+-- the model's colour names (Style) in the Kit's colours
+local function KitColor(Kit, name)
+  local C = Kit.C
+  if name == "good" then return C.green elseif name == "warning" then return C.yellow elseif name == "critical" then return C.red
+  elseif name == "textSecondary" then return C.muted elseif name == "textHint" then return C.quiet end
+  return C.title
+end
+
+-- tooltip lines of the model ({ label, value, colour name }, { header = }, text) in Kit colours
+local function TipLines(Kit, lines)
+  local out = {}
+  for _, l in ipairs(lines or {}) do
+    if type(l) == "table" and l[2] ~= nil then out[#out + 1] = { l[1], l[2], l[3] and KitColor(Kit, l[3]) or nil }
+    else out[#out + 1] = l end
   end
-  local foot = Style.Row(panel):SetText(L["/vd diag chat prints everything to the chat. In the report: Ctrl+A, Ctrl+C copies it."], "textHint")
-  foot:SetGapBefore(Style.SPACING.section)
-  return panel
+  return out
+end
+
+local function SectionOf(model, key)
+  for _, s in ipairs(model) do if s.key == key then return s end end
+  return { rows = {} }
+end
+
+-- one model row as a quiet list row: name left, value in the fixed right column, a mark in its colour
+local function KeyRow(Kit, r)
+  if r.text then
+    return { title = r.text, titleColor = KitColor(Kit, r.color), markColor = r.color == "critical" and Kit.C.red or nil,
+      compact = true, h = 28, tooltipFn = function() return r.text, TipLines(Kit, r.tip) end }
+  end
+  local label, value, color, tip, hint = r[1], r[2], r[3], r[4], r[5]
+  local lines = { { label, value, color } }
+  for _, l in ipairs(tip or {}) do lines[#lines + 1] = l end
+  return { title = label, right = value, rightColor = KitColor(Kit, color),
+    markColor = (color == "good" or color == "warning" or color == "critical") and KitColor(Kit, color) or nil,
+    compact = true, h = 28, tooltipFn = function() return label, TipLines(Kit, lines), hint end }
+end
+
+-- the problems for the hint lines: { text, kind, button text, action(win) }
+local function Problems(model)
+  local out = {}
+  if ns.BlizzardStatusTextOn() then
+    out[#out + 1] = { L["Blizzard's status text is on and may overlap. Use the button below to turn it off."], "warn", L["Turn off"],
+      function() if ns.TurnOffStatusTextTool then ns.TurnOffStatusTextTool() end end }
+  end
+  local found, total = ns.BarsFound()
+  if found < total then
+    out[#out + 1] = { L["Bars found: %d of %d"]:format(found, total), "warn", L["Search"], function()
+      ns.ResolveAll()
+      if ns.RefreshAll then ns.RefreshAll() end
+    end }
+  end
+  for _, r in ipairs(SectionOf(model, "bars").rows) do
+    if r[5] then out[#out + 1] = { r[1] .. ": " .. r[5], "warn" } end
+  end
+  for _, r in ipairs(SectionOf(model, "features").rows) do
+    if r[3] == "warning" and r[5] then out[#out + 1] = { r[5], "warn" } end
+  end
+  local errors = ns.Errors()
+  if #errors > 0 then
+    out[#out + 1] = { ("%s: %d"):format(L["Errors"], #errors), "red", L["Show"], function(win) win:SelectTab("errors") end }
+  end
+  if #out == 0 then out[1] = { L["Blizzard's status text is off."], "good" } end
+  return out
+end
+
+-- found and counted bars (also the hero and the hints)
+function ns.BarsFound()
+  local found, total = 0, 0
+  for _, entry in ipairs(ns.entries or {}) do
+    if ns.Counted(entry) then
+      total = total + 1
+      if entry.bar then found = found + 1 end
+    end
+  end
+  return found, total
+end
+
+local function BarItems(Kit, model, narrow)
+  local items = {}
+  for _, r in ipairs(SectionOf(model, "bars").rows) do
+    if r.cells then
+      local cells = {}
+      for i, c in ipairs(r.cells) do
+        if not (narrow and i > 3) then
+          cells[i] = { text = c[1], color = c[2] and KitColor(Kit, c[2]) or (i == 1 and Kit.C.title or Kit.C.muted) }
+        end
+      end
+      local tip
+      if narrow then
+        tip = function() return r[1], { { L["Font size"], r.cells[4][1] }, { L["Text"], r.cells[5][1], r.cells[5][2] and KitColor(Kit, r.cells[5][2]) } } end
+      end
+      items[#items + 1] = { kind = "table", cells = cells, unit = r.unit, row = r,
+        markColor = KitColor(Kit, r[3] == "textSecondary" and "textHint" or r[3]), tooltipFn = tip }
+    end
+  end
+  return items
+end
+
+local function ListItems(Kit, model, tab)
+  local items = {}
+  local function Add(section, withGroup)
+    if withGroup then items[#items + 1] = { kind = "group", text = section.title, static = true } end
+    for _, r in ipairs(section.rows) do items[#items + 1] = KeyRow(Kit, r) end
+  end
+  if tab == "overview" then
+    Add(SectionOf(model, "general"), true)
+    Add(SectionOf(model, "features"), true)
+  elseif tab == "values" then
+    Add(SectionOf(model, "values"), false)
+  elseif tab == "errors" then
+    Add(SectionOf(model, "errors"), false)
+  end
+  return items
+end
+
+-- the details of one bar (the facts of its tooltip in the chat-free window)
+local function FillDetail(Kit, d, item)
+  local r = item.row
+  d:SetHead({ title = r.unit or r[1], meta = tostring(r[2] or "") })
+  d:Begin()
+  for _, l in ipairs(r[4] or {}) do
+    if type(l) == "table" and l.header then d:Section(l.header)
+    elseif type(l) == "table" and l[2] ~= nil then d:Line(l[1], Kit.C.muted, tostring(l[2]), l[3] and KitColor(Kit, l[3]) or Kit.C.title)
+    elseif l ~= nil then d:Line(tostring(type(l) == "table" and (l[1] or "") or l), Kit.C.quiet) end
+  end
+  if r[5] then d:Space(4) d:Para(r[5], Kit.C.yellow) end
+  d:End()
+end
+
+local function Layout(win, w, h, mode)
+  local Kit, p = win.kit, win.parts
+  local S = Kit.SIZE
+  p.hero:ClearAllPoints()
+  p.hero:SetPoint("TOPLEFT", win.body, "TOPLEFT", 0, 0)
+  p.hero:Layout(w)
+  local y = (p.hero:GetHeight() or 56) + S.gap
+  for i, hint in ipairs(p.hints) do
+    if hint:IsShown() then
+      local b = p.hintButtons[i]
+      local bw = b:IsShown() and (b.natural or 80) or 0
+      local rowH = bw > 0 and S.buttonSmall or S.hint
+      hint:ClearAllPoints()
+      hint:SetPoint("TOPLEFT", win.body, "TOPLEFT", S.pad, -y - math.floor((rowH - S.hint) / 2))
+      hint:Layout(w - 2 * S.pad - (bw > 0 and bw + S.gap or 0))
+      if bw > 0 then
+        b:ClearAllPoints()
+        b:SetPoint("TOPRIGHT", win.body, "TOPRIGHT", -S.pad, -y)
+      end
+      y = y + rowH + S.unit
+    end
+  end
+  y = y + S.unit
+  local bars = win.tab == "bars"
+  local narrow = mode ~= "full"
+  local side = (bars and not narrow) and DETAIL_W + S.pad or 0
+  local lw = w - 2 * S.pad - side
+  -- a narrow table keeps three columns (rows built anew once when this changes)
+  local colsNarrow = lw < NARROW_COLS
+  if bars and colsNarrow ~= (p.colsNarrow or false) then
+    p.colsNarrow = colsNarrow
+    p.list:SetItems(BarItems(Kit, win.model or ns.DiagModel(), colsNarrow))
+    local sel
+    for _, it in ipairs(p.list.items or {}) do if it.unit and it.unit == p.picked then sel = it end end
+    p.list:Select(sel)
+  end
+  if bars and not colsNarrow then p.head:Show() else p.head:Hide() end
+  if bars and colsNarrow then p.headNarrow:Show() else p.headNarrow:Hide() end
+  local listTop = y
+  if bars then
+    local head = colsNarrow and p.headNarrow or p.head
+    head:ClearAllPoints()
+    head:SetPoint("TOPLEFT", win.body, "TOPLEFT", S.pad, -y)
+    head:Bind(p.list)
+    head:Layout(lw)
+    listTop = y + S.chip
+  end
+  p.list:ClearAllPoints()
+  p.list:SetPoint("TOPLEFT", win.body, "TOPLEFT", S.pad, -listTop)
+  p.list:Resize(lw, math.max(40, h - listTop - S.gap))
+  local item
+  if bars and p.picked then
+    for _, it in ipairs(p.list.items or {}) do if it.unit and it.unit == p.picked then item = it end end
+  end
+  local show = bars and (item ~= nil or not narrow)
+  if show then p.detail:Show() else p.detail:Hide() end
+  if show then
+    local dw = narrow and math.min(DETAIL_W, w - 2 * S.pad) or DETAIL_W
+    p.detail:ClearAllPoints()
+    p.detail:SetPoint("TOPRIGHT", win.body, "TOPRIGHT", -S.pad, -y)
+    p.detail:Layout(dw, math.max(60, h - y - S.gap))
+    if narrow then pcall(p.detail.SetFrameLevel, p.detail, (p.list:GetFrameLevel() or 1) + 20) end
+    if item then
+      p.detail.close:Show()
+      FillDetail(Kit, p.detail, item)
+    else
+      p.detail.close:Hide()
+      p.detail:SetHead({ title = L["Bars"], meta = L["Pick a bar in the list."] })
+      p.detail:Begin()
+      p.detail:Para(L["Click a bar for its path, layer, font size and alpha."], Kit.C.muted)
+      p.detail:End()
+    end
+  end
+  -- footer: the buttons from the right, the hint line gets the rest
+  local x = S.pad
+  for i = #p.buttons, 1, -1 do
+    local b = p.buttons[i]
+    b:ClearAllPoints()
+    b:SetPoint("RIGHT", win.footer, "RIGHT", -x, 0)
+    x = x + (b.natural or 80) + S.unit
+  end
+  if win.status then Kit.Fit(win.status, math.max(10, w - x - S.pad)) end
+end
+
+local function BuildWindow(Kit)
+  local win = Kit.Window("VitaldonDiagWindow", {
+    title = "Vitaldon", subtitle = L["Diagnostics"], logo = "Interface\\Icons\\Spell_Holy_FlashHeal",
+    width = 980, height = 520, min = { 560, 360 }, max = { 1200, 800 }, footer = true, store = WindowStore(),
+    options = "Vitaldon", hint = "/vd",
+    onTab = function(key)
+      WindowStore().tab = key
+      ns.FillDiag()
+    end,
+    onLayout = function(w, bw, bh, mode) if w.parts then Layout(w, bw, bh, mode) end end,
+    onClose = function() WindowStore().shown = false end,
+  })
+  win.kit = Kit
+  local p = {}
+  p.hero = Kit.Hero(win.body, { height = 56, column = 120 })
+  p.hints, p.hintButtons = {}, {}
+  for i = 1, 3 do
+    p.hints[i] = Kit.Hint(win.body)
+    p.hints[i]:Hide()
+    p.hintButtons[i] = Kit.Button(win.body, "", { small = true, onClick = function(self)
+      if self.action then self.action(win) end
+      ns.FillDiag()
+    end })
+    p.hintButtons[i]:Hide()
+  end
+  local cols = {
+    { key = "unit", text = L["Unit"], width = 120, grow = true },
+    { key = "health", text = L["Health"], width = 110 },
+    { key = "power", text = L["Power"], width = 110 },
+    { key = "size", text = L["Size"], width = 56, justify = "RIGHT" },
+    { key = "layer", text = L["Layer"], width = 110 },
+  }
+  p.head = Kit.TableHead(win.body, { columns = cols })
+  p.headNarrow = Kit.TableHead(win.body, { columns = { cols[1], cols[2], cols[3] } })
+  -- a click picks a bar (its details on the right), a second click on it lets it go
+  function win:PickBar(unit)
+    p.picked = (unit and p.picked ~= unit) and unit or nil
+    local sel
+    for _, it in ipairs(p.list.items or {}) do if it.unit and it.unit == p.picked then sel = it end end
+    p.list:Select(sel)
+    self:Layout()
+  end
+  p.list = Kit.List(win.body, { onClick = function(item) if item.unit then win:PickBar(item.unit) end end })
+  p.detail = Kit.Detail(win.body, { onClose = function() p.picked = nil p.list:Select(nil) win:Layout() end })
+  p.buttons = {
+    Kit.Button(win.footer, L["Preview"], { small = true, onClick = function() ns.RunPreview() end }),
+    Kit.Button(win.footer, L["Search"], { small = true, onClick = function()
+      ns.ResolveAll()
+      if ns.RefreshAll then ns.RefreshAll() end
+      ns.FillDiag()
+    end }),
+    Kit.Button(win.footer, L["Copy report"], { small = true, kind = "primary", onClick = function() ns.CopyDiag() end }),
+  }
+  p.buttons[1]:SetTooltip(L["Preview format"], { L["Shows sample values on your player frame for 5 seconds, so you can check format, position, colour and font without combat. /vd preview"] })
+  p.buttons[2]:SetTooltip(L["Find unit frames again"], { L["Searches Blizzard's bars again, e.g. after another addon changed the unit frames. /vd refresh"] })
+  win:SetStatus(L["/vd diag chat prints everything to the chat. In the report: Ctrl+A, Ctrl+C copies it."])
+  win.parts = p
+  win.tabKeys = {}
+  for _, t in ipairs(TABS) do win:AddTab(t[1], L[t[2]]) win.tabKeys[t[1]] = true end
+  return win
+end
+
+-- The report in DonCore's shared copy box.
+function ns.CopyDiag()
+  local Kit = GetKit()
+  if not (Kit and Kit.ShowCopy) then return ns.PrintDiag() end
+  return Kit.ShowCopy("Vitaldon: " .. L["Report to copy"], L["Ctrl+A, Ctrl+C copies the report, e.g. for a bug report."],
+    table.concat(ns.DiagLines(), "\n"), { selectAll = L["Select all"], close = L["Close"] })
+end
+
+-- Fills the open window from a fresh model.
+function ns.FillDiag()
+  local win = ns.diagWindow
+  if not win then return end
+  local Kit, p = win.kit, win.parts
+  local model = ns.DiagModel()
+  win.model = model
+  local tab = win.tab or "overview"
+  local found, total = ns.BarsFound()
+  local build = ns.Call(GetBuildInfo)
+  local apis = SectionOf(model, "general").rows[3]
+  p.hero:SetData({
+    kicker = ("Vitaldon %s  ·  %s %s  ·  %s %s"):format(ns.Version(), L["Client"], ns.Usable(build) and tostring(build) or "?",
+      L["Game functions"], tostring(apis and apis[2] or "?")),
+    title = L[TITLES[tab]], value = ("%d / %d"):format(found, total), label = L["Bars found"],
+    progress = total > 0 and found / total or 0, valueColor = found == total and Kit.C.green or Kit.C.yellow,
+    progressColor = found == total and "green" or "yellow" })
+  local probs = Problems(model)
+  for i, hint in ipairs(p.hints) do
+    local pr, b = probs[i], p.hintButtons[i]
+    if pr then
+      hint:SetHint(pr[1], pr[2])
+      hint:Show()
+      if pr[3] and pr[4] then b:SetText(pr[3]) b.action = pr[4] b:Show() else b.action = nil b:Hide() end
+    else
+      hint:Hide()
+      b.action = nil
+      b:Hide()
+    end
+  end
+  -- a red mark on a tab where something needs a look
+  local barWarn = false
+  for _, r in ipairs(SectionOf(model, "bars").rows) do if r[3] == "warning" or r[3] == "critical" then barWarn = true end end
+  for _, t in ipairs(win.tabs) do
+    if t.SetAlert then t:SetAlert((t.key == "bars" and barWarn) or (t.key == "errors" and #ns.Errors() > 0) or false) end
+  end
+  if tab == "bars" then
+    local items = BarItems(Kit, model, p.colsNarrow)
+    p.list:SetItems(items)
+    local sel
+    for _, it in ipairs(items) do if it.unit and it.unit == p.picked then sel = it end end
+    if not sel then p.picked = nil end
+    p.list:Select(sel)
+  else
+    p.list:SetItems(ListItems(Kit, model, tab))
+    p.list:Select(nil)
+  end
+  p.list:SetEmpty(L["none"])
+  win:Layout()
 end
 
 -- Opens (or refreshes) the window. Without the kit: chat output.
 function ns.ShowDiag()
-  if not (ns.Style and ns.Style.Panel) then return ns.PrintDiag() end
-  if not ns.diagPanel then ns.diagPanel = BuildPanel() end
-  Fill(ns.diagPanel)
+  local Kit = GetKit()
+  if not (Kit and Kit.Window and Kit.Hint and Kit.Detail and Kit.TableHead) then return ns.PrintDiag() end
+  local win = ns.diagWindow
+  if not win then
+    win = BuildWindow(Kit)
+    ns.diagWindow = win
+    local tab = WindowStore().tab
+    win.tab = win.tabKeys[tab] and tab or "overview"
+    for _, t in ipairs(win.tabs) do t:SetSelected(t.key == win.tab) end
+  end
+  win:Show()
   WindowStore().shown = true
-  ns.diagPanel:FadeIn()
-  return ns.diagPanel
+  ns.FillDiag()
+  return win
 end

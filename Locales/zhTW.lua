@@ -279,3 +279,18 @@ L["Hide"] = "隱藏"
 L["Hides the health text of this frame at full health. 'Like general setting' follows Hide at full health on the Text page. Only works when the game lets addons read the values (mostly out of combat), otherwise the text stays."] = "生命力全滿時隱藏此框架的生命力文字。「同一般設定」會依照「文字」頁面上的「生命力全滿時隱藏」。只在遊戲允許插件讀取數值時有效(大多是在非戰鬥狀態下)，否則文字會保持顯示。"
 L["bar transparent (frame faded)"] = "狀態條透明(框架已淡出)"
 L["Alpha bar / text"] = "透明度(狀態條/文字)"
+
+-- DonCore's Settings and options window (01.11.2026): Blizzard's short page and the Tools tab (from Luredon)
+L["Options"] = "選項"
+
+-- (02.11.2026, StyleKit 2 step 4) diagnostics window from DonCore's Kit
+L["Overview"] = "總覽"
+L["Unit"] = "單位"
+L["Size"] = "大小"
+L["Copy report"] = "複製報告"
+L["health only"] = "僅生命力"
+L["Bars found"] = "已找到的狀態條"
+L["Pick a bar in the list."] = "請在清單中選擇一個狀態條。"
+L["Click a bar for its path, layer, font size and alpha."] = "點擊狀態條可查看其路徑、圖層、字體大小與透明度。"
+L["Select all"] = "全選"
+L["Ctrl+A, Ctrl+C copies the report, e.g. for a bug report."] = "Ctrl+A、Ctrl+C 可複製報告，例如用於回報錯誤。"

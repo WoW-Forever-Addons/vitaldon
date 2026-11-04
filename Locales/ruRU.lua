@@ -279,3 +279,18 @@ L["Hide"] = "Скрыть"
 L["Hides the health text of this frame at full health. 'Like general setting' follows Hide at full health on the Text page. Only works when the game lets addons read the values (mostly out of combat), otherwise the text stays."] = "Скрывает текст здоровья этой рамки при полном здоровье. \"Общая настройка\" следует параметру \"Скрывать при полном здоровье\" на странице \"Текст\". Работает, только если игра позволяет модификациям читать значения (в основном вне боя), иначе текст остается."
 L["bar transparent (frame faded)"] = "индикатор прозрачен (затухание рамки)"
 L["Alpha bar / text"] = "Альфа индикатора / текста"
+
+-- DonCore's Settings and options window (01.11.2026): Blizzard's short page and the Tools tab (from Luredon)
+L["Options"] = "Параметры"
+
+-- (02.11.2026, StyleKit 2 step 4) diagnostics window from DonCore's Kit
+L["Overview"] = "Обзор"
+L["Unit"] = "Юнит"
+L["Size"] = "Размер"
+L["Copy report"] = "Копировать отчет"
+L["health only"] = "только здоровье"
+L["Bars found"] = "Найдено индикаторов"
+L["Pick a bar in the list."] = "Выберите индикатор в списке."
+L["Click a bar for its path, layer, font size and alpha."] = "Щелчок по индикатору показывает путь, слой, размер шрифта и прозрачность."
+L["Select all"] = "Выделить все"
+L["Ctrl+A, Ctrl+C copies the report, e.g. for a bug report."] = "Ctrl+A, Ctrl+C копирует отчет, например для сообщения об ошибке."

@@ -95,6 +95,18 @@ end
 -- Family wordmark (DESIGN.md): accent part plus "don".
 ns.WORDMARK = "|cff3fa9f5Vital|rdon"
 
+-- (02.11.2026, StyleKit 2 step 4) DonCore's Kit (the Don style's colours, the diagnostics window), nil without it
+function ns.GetKit(minor)
+  local Core = LibStub and LibStub("DonCore-1.0", true)
+  return Core and Core:Get("Kit", minor or 1)
+end
+-- chat colours of the Don style (Kit.C title and muted; the same values without the Kit)
+do
+  local Kit = ns.GetKit(1)
+  ns.CHAT_TITLE = "|c" .. (Kit and Kit.C.title.hex or "ffefe5cf")
+  ns.CHAT_MUTED = "|c" .. (Kit and Kit.C.muted.hex or "ff8792a8")
+end
+
 local MAX_ERRORS, MAX_MSG = 10, 160
 local errors, warned = {}, false
 -- (1.7) The same error repeating on every event (e.g. 40 raid frames) is
@@ -465,7 +477,7 @@ local OPEN = { [""] = true, options = true, config = true, optionen = true }
 -- One line per command: command in primary, description in secondary.
 function ns.PrintHelp()
   ns.Print(L["Commands:"])
-  for _, c in ipairs(ns.COMMANDS) do print("  |cffebebeb" .. c[1] .. "|r  |cff9ea3ad" .. L[c[2]] .. "|r") end
+  for _, c in ipairs(ns.COMMANDS) do print("  " .. ns.CHAT_TITLE .. c[1] .. "|r  " .. ns.CHAT_MUTED .. L[c[2]] .. "|r") end
 end
 
 function ns.Slash(msg)

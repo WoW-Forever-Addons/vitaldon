@@ -279,3 +279,18 @@ L["Hide"] = "Ocultar"
 L["Hides the health text of this frame at full health. 'Like general setting' follows Hide at full health on the Text page. Only works when the game lets addons read the values (mostly out of combat), otherwise the text stays."] = "Oculta el texto de salud de este marco cuando la salud está completa. \"Como la opción general\" sigue la opción \"Ocultar con salud completa\" de la página Texto. Solo funciona cuando el juego permite que los addons lean los valores (por lo general, fuera de combate); si no, el texto sigue visible."
 L["bar transparent (frame faded)"] = "barra transparente (marco desvanecido)"
 L["Alpha bar / text"] = "Opacidad (barra / texto)"
+
+-- DonCore's Settings and options window (01.11.2026): Blizzard's short page and the Tools tab (from Luredon)
+L["Options"] = "Opciones"
+
+-- (02.11.2026, StyleKit 2 step 4) diagnostics window from DonCore's Kit
+L["Overview"] = "Resumen"
+L["Unit"] = "Unidad"
+L["Size"] = "Tamaño"
+L["Copy report"] = "Copiar informe"
+L["health only"] = "solo salud"
+L["Bars found"] = "Barras encontradas"
+L["Pick a bar in the list."] = "Elige una barra de la lista."
+L["Click a bar for its path, layer, font size and alpha."] = "Haz clic en una barra para ver su ruta, capa, tamaño de fuente y opacidad."
+L["Select all"] = "Seleccionar todo"
+L["Ctrl+A, Ctrl+C copies the report, e.g. for a bug report."] = "Ctrl+A, Ctrl+C copia el informe, p. ej. para reportar un error."

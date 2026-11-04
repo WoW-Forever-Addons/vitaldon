@@ -280,10 +280,15 @@ ns.COLOR_LABELS = {
 }
 
 -- Colour for a readable percent (0 to 100). Secret or missing: nil.
--- Family status colours (DESIGN.md): good, warning, critical.
-ns.STATUS_COLORS = {
-  good = { 0.40, 0.80, 0.45 }, warning = { 0.95, 0.75, 0.25 }, critical = { 0.92, 0.35, 0.32 },
-}
+-- (02.11.2026, Daniel: Kit colours) the Don style's status colours from DonCore's Kit: green, yellow, red (Kit.C); the same
+-- values without the Kit.
+local function KitRGB(name, hex)
+  local Kit = ns.GetKit and ns.GetKit(1)
+  local c = Kit and Kit.C and Kit.C[name]
+  if type(c) == "table" then return { c[1], c[2], c[3] } end
+  return { tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255 }
+end
+ns.STATUS_COLORS = { good = KitRGB("green", "66BB6A"), warning = KitRGB("yellow", "FFD54F"), critical = KitRGB("red", "EF5350") }
 function ns.HealthColor(pct)
   local p = ns.Num(pct)
   if not p then return nil end
@@ -299,6 +304,12 @@ function ns.ClassColor(unit)
   if type(UnitClass) ~= "function" then return nil end
   local ok, _, classFile = pcall(UnitClass, unit)
   if not ok or type(classFile) ~= "string" or not ns.Usable(classFile) then return nil end
+  -- (02.11.2026) the Kit's class colours (the same in every Don addon; Era's pink shaman fixed, CUSTOM_CLASS_COLORS wins)
+  local Kit = ns.GetKit and ns.GetKit(4)
+  if Kit and Kit.ClassColor then
+    local k = Kit.ClassColor(classFile)
+    if type(k) == "table" and k[1] then return k[1], k[2], k[3] end
+  end
   local c
   if C_ClassColor and C_ClassColor.GetClassColor then c = ns.Call(C_ClassColor.GetClassColor, classFile) end
   if (type(c) ~= "table" or not ns.Usable(c)) and type(RAID_CLASS_COLORS) == "table" then c = RAID_CLASS_COLORS[classFile] end
@@ -436,7 +447,7 @@ end
 function ns.PrintFormats()
   ns.Print(L["Formats with your settings (health | power):"])
   for _, mode in ipairs(ns.FORMATS) do
-    print(("  |cffebebeb%s|r  %s  |cff9ea3ad|||r  %s"):format(L[ns.FORMAT_NAMES[mode]],
-      ns.FormatSample(mode, "health") or "-", ns.FormatSample(mode, "power") or "-"))
+    print(("  %s%s|r  %s  %s|||r  %s"):format(ns.CHAT_TITLE, L[ns.FORMAT_NAMES[mode]],
+      ns.FormatSample(mode, "health") or "-", ns.CHAT_MUTED, ns.FormatSample(mode, "power") or "-"))
   end
 end
