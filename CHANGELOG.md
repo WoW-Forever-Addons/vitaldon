@@ -1,5 +1,9 @@
 # Changes
 
+## 1.2.1
+
+- **Shared Don library:** updated to the current version of the Don addons (tooltips with a head line and class symbols).
+
 ## 1.2.0
 
 - **New look:** the diagnostics window (`/vd diag`) in the style of the Don addons: tabs Overview, Bars, Values and Errors, problems on top with a button where Vitaldon can fix them, the bars as a table with their details on the right, the report in the shared copy window.

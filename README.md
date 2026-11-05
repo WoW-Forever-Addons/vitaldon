@@ -1,4 +1,4 @@
-# Vitaldon 1.2.0 (WoW Forever)
+# Vitaldon 1.2.1 (WoW Forever)
 
 Text auf den Gesundheits- und Energieleisten (Mana, Wut, Energie, Fokus) der Standard-Einheitenfenster von Blizzard für World of Warcraft: Forever (Client "Camelot", Interface 16001).
 
