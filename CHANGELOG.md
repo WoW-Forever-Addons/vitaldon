@@ -1,5 +1,9 @@
 # Changes
 
+## 1.2.2
+
+- **Cleaner text in narrow places:** text that is shrunk to fit keeps one font and size, also after the game window changes its size.
+
 ## 1.2.1
 
 - **Shared Don library:** updated to the current version of the Don addons (tooltips with a head line and class symbols).
