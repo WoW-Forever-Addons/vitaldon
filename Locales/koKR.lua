@@ -294,3 +294,9 @@ L["Pick a bar in the list."] = "목록에서 바를 선택하세요."
 L["Click a bar for its path, layer, font size and alpha."] = "바를 클릭하면 경로, 계층, 글자 크기, 투명도를 보여 줍니다."
 L["Select all"] = "모두 선택"
 L["Ctrl+A, Ctrl+C copies the report, e.g. for a bug report."] = "Ctrl+A, Ctrl+C로 보고서를 복사합니다(예: 오류 신고용)."
+
+-- (16.11.2026) Blizzard look (DonCore Blizz): option, the diagnostics window fallback
+L["Windows"] = "창"
+L["Windows in the game's look"] = "게임 스타일의 창"
+L["Vitaldon's windows look like the game's own: the diagnostics window and the report with the game's frame, tabs, buttons and lists. The text on the unit frames does not change. The options then open in the game's settings (Options > AddOns > Vitaldon) after a /reload."] = "Vitaldon의 창이 게임 자체의 창처럼 보입니다: 진단 창과 보고서는 게임의 테두리, 탭, 버튼, 목록으로 표시됩니다. 개체창의 텍스트는 바뀌지 않습니다. 설정은 /reload 후 게임 설정(설정 > 애드온 > Vitaldon)에서 열립니다."
+L["The diagnostics window could not be built in the game's look, it opens in the Don look. /vd diag chat says why."] = "진단 창을 게임 스타일로 만들 수 없어 Don 스타일로 엽니다. /vd diag chat에서 이유를 볼 수 있습니다."

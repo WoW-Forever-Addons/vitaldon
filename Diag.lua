@@ -129,6 +129,9 @@ function ns.DiagLines()
   out[#out + 1] = L["BetterBlizzFrames loaded: %s"]:format(bbf.loaded and L["yes"] or L["no"]) .. (bbfOpts and (" (" .. bbfOpts .. ")") or "")
   out[#out + 1] = L["Always keep text in front: %s"]:format((ns.db or {}).textOnTop and L["on"] or L["off"])
   out[#out + 1] = ("%s: %s"):format(L["Fit text to bar"], (ns.db or {}).fitText and L["on"] or L["off"])
+  -- (16.11.2026) the option blizzLook and the look the diagnostics window got, with the reason when it is the Kit's
+  out[#out + 1] = ("%s: %s (%s)"):format(L["Windows in the game's look"], (ns.db or {}).blizzLook and L["on"] or L["off"],
+    ns.DiagLook and ns.DiagLook() or "?")
   local abbr, full = ns.AbbrevSample()
   out[#out + 1] = L["Number abbreviation: %s (unabbreviated %s)"]:format(abbr, full)
 
@@ -255,6 +258,9 @@ function ns.DiagModel()
   general.rows[#general.rows + 1] = { L["BetterBlizzFrames loaded"], bbf.loaded and L["yes"] or L["no"],
     (bbf.centerText or bbf.formatText) and "warning" or nil, bbfTip,
     bbf.loaded and L["Vitaldon keeps its text above the bar's fill. Details per bar in the Bars section."] or nil }
+  -- (16.11.2026) the look of the windows: option and what was built
+  general.rows[#general.rows + 1] = { L["Windows in the game's look"], (ns.db or {}).blizzLook and L["on"] or L["off"], nil,
+    { ns.DiagLook and ns.DiagLook() or "?" } }
 
   -- Bars: one row per unit (health and power together)
   local bars = Section(L["Bars"], "bars")
@@ -665,10 +671,43 @@ local function Layout(win, w, h, mode)
   if win.status then Kit.Fit(win.status, math.max(10, w - x - S.pad)) end
 end
 
-local function BuildWindow(Kit)
-  local win = Kit.Window("VitaldonDiagWindow", {
+---------------------------------------------------------------------------
+-- (16.11.2026, Daniel: Blizzard look as the default for all Don addons, Luredon's book as the model) the window takes its
+-- blocks from UI: the Kit, or with the option blizzLook the same blocks from the game's own templates (ns.LookKit).
+-- Picked when the window is built (PickUI); a build that fails with Blizzard's blocks is hidden and done again with the
+-- Kit, one chat line per session. ns.DiagLook() says which one runs and why (the report's line).
+---------------------------------------------------------------------------
+local lookNote = "kit"
+local building -- the window being built (hidden when Blizzard's build fails half way)
+
+local function PickUI()
+  local UI, blizz, _, why = ns.LookKit()
+  if blizz then lookNote = "blizzard" return UI, true end
+  lookNote = why == "off" and "kit" or ("kit (" .. tostring(why) .. ")")
+  return UI, false
+end
+
+local said
+function ns.SayDiagLook()
+  if said or not ns.Print then return end
+  said = true
+  ns.Print(L["The diagnostics window could not be built in the game's look, it opens in the Don look. /vd diag chat says why."])
+end
+
+-- the Blizzard frame keeps its own place and size (it shows at 100 %, the Kit's window at 80 %)
+local function BlizzStore()
+  local db = ns.db or {}
+  if type(db.diagWindowBlizz) ~= "table" then db.diagWindowBlizz = {} end
+  return db.diagWindowBlizz
+end
+
+local function BuildWindow(UI, blizz)
+  building = nil
+  local win = UI.Window(blizz and "VitaldonDiagWindowBlizz" or "VitaldonDiagWindow", {
     title = "Vitaldon", subtitle = L["Diagnostics"], logo = "Interface\\Icons\\Spell_Holy_FlashHeal",
-    width = 980, height = 520, min = { 560, 360 }, max = { 1200, 800 }, footer = true, store = WindowStore(),
+    -- the Kit's windows show at 80 %, the game's frame at 100 %: about the same size on the screen
+    width = blizz and 860 or 980, height = blizz and 460 or 520, min = blizz and { 600, 340 } or { 560, 360 },
+    max = blizz and { 1100, 760 } or { 1200, 800 }, footer = true, store = blizz and BlizzStore() or WindowStore(),
     options = "Vitaldon", hint = "/vd",
     onTab = function(key)
       WindowStore().tab = key
@@ -677,14 +716,15 @@ local function BuildWindow(Kit)
     onLayout = function(w, bw, bh, mode) if w.parts then Layout(w, bw, bh, mode) end end,
     onClose = function() WindowStore().shown = false end,
   })
-  win.kit = Kit
+  building = win
+  win.kit, win.blizz = UI, blizz or nil
   local p = {}
-  p.hero = Kit.Hero(win.body, { height = 56, column = 120 })
+  p.hero = UI.Hero(win.body, { height = 56, column = 120 })
   p.hints, p.hintButtons = {}, {}
   for i = 1, 3 do
-    p.hints[i] = Kit.Hint(win.body)
+    p.hints[i] = UI.Hint(win.body)
     p.hints[i]:Hide()
-    p.hintButtons[i] = Kit.Button(win.body, "", { small = true, onClick = function(self)
+    p.hintButtons[i] = UI.Button(win.body, "", { small = true, onClick = function(self)
       if self.action then self.action(win) end
       ns.FillDiag()
     end })
@@ -697,8 +737,8 @@ local function BuildWindow(Kit)
     { key = "size", text = L["Size"], width = 56, justify = "RIGHT" },
     { key = "layer", text = L["Layer"], width = 110 },
   }
-  p.head = Kit.TableHead(win.body, { columns = cols })
-  p.headNarrow = Kit.TableHead(win.body, { columns = { cols[1], cols[2], cols[3] } })
+  p.head = UI.TableHead(win.body, { columns = cols })
+  p.headNarrow = UI.TableHead(win.body, { columns = { cols[1], cols[2], cols[3] } })
   -- a click picks a bar (its details on the right), a second click on it lets it go
   function win:PickBar(unit)
     p.picked = (unit and p.picked ~= unit) and unit or nil
@@ -707,16 +747,16 @@ local function BuildWindow(Kit)
     p.list:Select(sel)
     self:Layout()
   end
-  p.list = Kit.List(win.body, { onClick = function(item) if item.unit then win:PickBar(item.unit) end end })
-  p.detail = Kit.Detail(win.body, { onClose = function() p.picked = nil p.list:Select(nil) win:Layout() end })
+  p.list = UI.List(win.body, { onClick = function(item) if item.unit then win:PickBar(item.unit) end end })
+  p.detail = UI.Detail(win.body, { onClose = function() p.picked = nil p.list:Select(nil) win:Layout() end })
   p.buttons = {
-    Kit.Button(win.footer, L["Preview"], { small = true, onClick = function() ns.RunPreview() end }),
-    Kit.Button(win.footer, L["Search"], { small = true, onClick = function()
+    UI.Button(win.footer, L["Preview"], { small = true, onClick = function() ns.RunPreview() end }),
+    UI.Button(win.footer, L["Search"], { small = true, onClick = function()
       ns.ResolveAll()
       if ns.RefreshAll then ns.RefreshAll() end
       ns.FillDiag()
     end }),
-    Kit.Button(win.footer, L["Copy report"], { small = true, kind = "primary", onClick = function() ns.CopyDiag() end }),
+    UI.Button(win.footer, L["Copy report"], { small = true, kind = "primary", onClick = function() ns.CopyDiag() end }),
   }
   p.buttons[1]:SetTooltip(L["Preview format"], { L["Shows sample values on your player frame for 5 seconds, so you can check format, position, colour and font without combat. /vd preview"] })
   p.buttons[2]:SetTooltip(L["Find unit frames again"], { L["Searches Blizzard's bars again, e.g. after another addon changed the unit frames. /vd refresh"] })
@@ -728,11 +768,20 @@ local function BuildWindow(Kit)
 end
 
 -- The report in DonCore's shared copy box.
+-- (16.11.2026) In the look of the window (the game's dialog with blizzLook, Bz.kit.ShowCopy); one that fails: the Kit's.
 function ns.CopyDiag()
   local Kit = GetKit()
   if not (Kit and Kit.ShowCopy) then return ns.PrintDiag() end
-  return Kit.ShowCopy("Vitaldon: " .. L["Report to copy"], L["Ctrl+A, Ctrl+C copies the report, e.g. for a bug report."],
-    table.concat(ns.DiagLines(), "\n"), { selectAll = L["Select all"], close = L["Close"] })
+  local win = ns.diagWindow
+  local UI = win and win.kit or ns.LookKit()
+  local title, hint = "Vitaldon: " .. L["Report to copy"], L["Ctrl+A, Ctrl+C copies the report, e.g. for a bug report."]
+  local text, words = table.concat(ns.DiagLines(), "\n"), { selectAll = L["Select all"], close = L["Close"] }
+  if UI and UI ~= Kit and UI.blizzLook and UI.ShowCopy then
+    local ok, res = pcall(UI.ShowCopy, title, hint, text, words)
+    if ok and res then return res end
+    if not ok then ns.RecordError("copy blizz look", res) end
+  end
+  return Kit.ShowCopy(title, hint, text, words)
 end
 
 -- Fills the open window from a fresh model.
@@ -786,20 +835,62 @@ function ns.FillDiag()
   win:Layout()
 end
 
+-- builds the window with the blocks of UI, opens it and fills it
+local function Build(UI, blizz)
+  local win = BuildWindow(UI, blizz)
+  ns.diagWindow = win
+  local tab = WindowStore().tab
+  win.tab = win.tabKeys[tab] and tab or "overview"
+  for _, t in ipairs(win.tabs) do t:SetSelected(t.key == win.tab) end
+  win:Show()
+  WindowStore().shown = true
+  ns.FillDiag()
+  return win
+end
+
 -- Opens (or refreshes) the window. Without the kit: chat output.
 function ns.ShowDiag()
   local Kit = GetKit()
   if not (Kit and Kit.Window and Kit.Hint and Kit.Detail and Kit.TableHead) then return ns.PrintDiag() end
   local win = ns.diagWindow
-  if not win then
-    win = BuildWindow(Kit)
-    ns.diagWindow = win
-    local tab = WindowStore().tab
-    win.tab = win.tabKeys[tab] and tab or "overview"
-    for _, t in ipairs(win.tabs) do t:SetSelected(t.key == win.tab) end
+  if win then
+    win:Show()
+    WindowStore().shown = true
+    ns.FillDiag()
+    return win
   end
-  win:Show()
-  WindowStore().shown = true
-  ns.FillDiag()
-  return win
+  local UI, blizz = PickUI()
+  if not blizz then return Build(Kit, false) end
+  -- Blizzard's blocks: any error while building leaves the half-built window hidden and the Kit builds it
+  local ok, res = pcall(Build, UI, true)
+  if ok then return res end
+  if building and building.Hide then pcall(building.Hide, building) end
+  building, ns.diagWindow = nil, nil
+  lookNote = "kit (error: " .. tostring(res) .. ")"
+  ns.RecordError("diag blizz look", res)
+  ns.SayDiagLook()
+  return Build(Kit, false)
+end
+
+-- "blizzard" or "kit", with the reason when the option is on and the Kit had to build (the report)
+function ns.DiagLook()
+  if not ns.diagWindow then
+    local _, blizz, _, why = ns.LookKit()
+    if blizz then return "blizzard (not built yet)" end
+    if why ~= "off" then return "kit (" .. tostring(why) .. ")" end
+    return "kit"
+  end
+  return lookNote
+end
+
+-- the option blizzLook changed: the window is built again in the other look the next time it opens (it was open: now)
+function ns.DiagReset()
+  local win = ns.diagWindow
+  if not win then return end
+  local open = win:IsShown()
+  local shown = WindowStore().shown
+  win:Hide()
+  ns.diagWindow = nil
+  WindowStore().shown = shown
+  if open then ns.ShowDiag() end
 end

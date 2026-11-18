@@ -51,6 +51,9 @@ ns.defaults = {
   -- fill or frame in a higher strata above the bar), our text frame moves
   -- one strata up
   textOnTop = true,
+  -- (16.11.2026, Daniel: "Sollte Standart sein", the rule for all Don addons) the diagnostics window and the report from
+  -- the game's own templates (DonCore module Blizz); a client without them keeps the Don look without a word
+  blizzLook = true,
 }
 
 -- Version of the saved settings. 1 = up to Vitaldon 1.3, 2 = 1.4.
@@ -99,6 +102,19 @@ ns.WORDMARK = "|cff3fa9f5Vital|rdon"
 function ns.GetKit(minor)
   local Core = LibStub and LibStub("DonCore-1.0", true)
   return Core and Core:Get("Kit", minor or 1)
+end
+-- (16.11.2026, Blizzard look for all Don addons, Luredon's ns.LookKit) the one place that picks the blocks of Vitaldon's
+-- windows: DonCore's Kit, or with the option blizzLook the same blocks from the game's templates (DonCore Blizz, Bz.kit).
+-- Returns the kit, true when it is Blizzard's, the module, and (Kit) why not: "off", "no DonCore Blizz", "missing: ...".
+function ns.LookKit()
+  local Core = LibStub and LibStub("DonCore-1.0", true)
+  local Kit = Core and Core:Get("Kit", 7)
+  if not (ns.db and ns.db.blizzLook) then return Kit, false, nil, "off" end
+  local Bz = Core:Get("Blizz", 5)
+  if not Bz then return Kit, false, nil, "no DonCore Blizz" end
+  local kit, miss = Bz.Kit()
+  if kit then return kit, true, Bz end
+  return Kit, false, Bz, "missing: " .. tostring(miss)
 end
 -- chat colours of the Don style (Kit.C title and muted; the same values without the Kit)
 do

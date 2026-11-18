@@ -1,5 +1,10 @@
 # Changes
 
+## 1.3.0
+
+- **Vitaldon in the game's look:** the diagnostics window and the report window now look like the game's own windows: the game's frame, tabs, buttons and lists. The numbers on the unit frames do not change. The options open in the game's settings (Options > AddOns > Vitaldon). This is the new default; the Don look is one switch away under General, "Windows in the game's look".
+- **Shared Don library:** updated to the current version of the Don addons.
+
 ## 1.2.2
 
 - **Cleaner text in narrow places:** text that is shrunk to fit keeps one font and size, also after the game window changes its size.

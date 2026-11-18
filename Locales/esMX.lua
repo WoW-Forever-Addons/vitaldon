@@ -294,3 +294,9 @@ L["Pick a bar in the list."] = "Elige una barra de la lista."
 L["Click a bar for its path, layer, font size and alpha."] = "Haz clic en una barra para ver su ruta, capa, tamaño de fuente y opacidad."
 L["Select all"] = "Seleccionar todo"
 L["Ctrl+A, Ctrl+C copies the report, e.g. for a bug report."] = "Ctrl+A, Ctrl+C copia el informe, p. ej. para reportar un error."
+
+-- (16.11.2026) Blizzard look (DonCore Blizz): option, the diagnostics window fallback
+L["Windows"] = "Ventanas"
+L["Windows in the game's look"] = "Ventanas con el aspecto del juego"
+L["Vitaldon's windows look like the game's own: the diagnostics window and the report with the game's frame, tabs, buttons and lists. The text on the unit frames does not change. The options then open in the game's settings (Options > AddOns > Vitaldon) after a /reload."] = "Las ventanas de Vitaldon se ven como las del juego: ventana de diagnóstico e informe con el marco, las pestañas, los botones y las listas del juego. El texto de los marcos de unidades no cambia. Las opciones se abren entonces en los ajustes del juego (Opciones > AddOns > Vitaldon) tras un /reload."
+L["The diagnostics window could not be built in the game's look, it opens in the Don look. /vd diag chat says why."] = "La ventana de diagnóstico no se pudo construir con el aspecto del juego, se abre con el aspecto Don. /vd diag chat dice por qué."
