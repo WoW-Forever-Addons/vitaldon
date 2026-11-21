@@ -297,6 +297,5 @@ L["Ctrl+A, Ctrl+C copies the report, e.g. for a bug report."] = "Ctrl+A, Ctrl+C 
 
 -- (16.11.2026) Blizzard look (DonCore Blizz): option, the diagnostics window fallback
 L["Windows"] = "Fenêtres"
-L["Windows in the game's look"] = "Fenêtres dans le style du jeu"
-L["Vitaldon's windows look like the game's own: the diagnostics window and the report with the game's frame, tabs, buttons and lists. The text on the unit frames does not change. The options then open in the game's settings (Options > AddOns > Vitaldon) after a /reload."] = "Les fenêtres de Vitaldon ressemblent à celles du jeu : fenêtre de diagnostic et rapport avec le cadre, les onglets, les boutons et les listes du jeu. Le texte sur les portraits d’unités ne change pas. Les options s'ouvrent alors dans les réglages du jeu (Options > AddOns > Vitaldon) après un /reload."
+L["The text on the unit frames does not change."] = "Le texte sur les portraits d’unités ne change pas."
 L["The diagnostics window could not be built in the game's look, it opens in the Don look. /vd diag chat says why."] = "La fenêtre de diagnostic n'a pas pu être construite dans le style du jeu, elle s'ouvre dans le style Don. /vd diag chat indique pourquoi."

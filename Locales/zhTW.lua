@@ -297,6 +297,5 @@ L["Ctrl+A, Ctrl+C copies the report, e.g. for a bug report."] = "Ctrl+A、Ctrl+C
 
 -- (16.11.2026) Blizzard look (DonCore Blizz): option, the diagnostics window fallback
 L["Windows"] = "視窗"
-L["Windows in the game's look"] = "遊戲風格的視窗"
-L["Vitaldon's windows look like the game's own: the diagnostics window and the report with the game's frame, tabs, buttons and lists. The text on the unit frames does not change. The options then open in the game's settings (Options > AddOns > Vitaldon) after a /reload."] = "Vitaldon 的視窗看起來就像遊戲本身的視窗：診斷視窗和報告使用遊戲的外框、分頁、按鈕和清單。單位框架上的文字不會改變。/reload 之後，選項會在遊戲的設定中開啟（選項 > 插件 > Vitaldon）。"
+L["The text on the unit frames does not change."] = "單位框架上的文字不會改變。"
 L["The diagnostics window could not be built in the game's look, it opens in the Don look. /vd diag chat says why."] = "無法以遊戲風格建立診斷視窗，改以 Don 風格開啟。/vd diag chat 會說明原因。"

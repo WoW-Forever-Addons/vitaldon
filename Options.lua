@@ -86,9 +86,10 @@ local PAGES = {
     -- (16.11.2026, Daniel: Blizzard look for all Don addons, on by default) the diagnostics window and the report from the
     -- game's own templates (DonCore Blizz); Vitaldon has no appearance page, the look of its windows sits here
     { header = "Windows" },
-    { key = "blizzLook", name = "Windows in the game's look", tip = "Vitaldon's windows look like the game's own: the diagnostics window and the report with the game's frame, tabs, buttons and lists. The text on the unit frames does not change. The options then open in the game's settings (Options > AddOns > Vitaldon) after a /reload.", onChange = function()
-      if ns.DiagReset then ns.DiagReset() end
-    end },
+    -- (20.11.2026, Daniel: the same choice in every Don addon) "Window style" with "Don look" / "Blizzard look" from
+    -- DonCore (Settings minor 6, ns.LookOption), still the boolean db.blizzLook
+    ns.LookOption({ addon = "Vitaldon", note = L["The text on the unit frames does not change."],
+      onChange = function() if ns.DiagReset then ns.DiagReset() end end }),
   } },
   { title = "Units", tip = "Which of Blizzard's unit frames get Vitaldon's text.", items = {
     { header = "Unit frames" },

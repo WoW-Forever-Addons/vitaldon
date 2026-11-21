@@ -1,5 +1,11 @@
 local _, ns = ...
 local L = ns.L
+-- (20.11.2026) the words of the look choice ("Window style", "Don look", "Blizzard look") in the game's language, from
+-- DonCore (Settings minor 6), the same as in the options
+local function LookWord(text)
+  local S = LibStub("DonCore-1.0"):Get("Settings", 1)
+  return S and S.LookWord and S.LookWord(text) or text
+end
 
 ---------------------------------------------------------------------------
 -- /vd diag: which bars were found (and by which path), which APIs exist,
@@ -130,7 +136,7 @@ function ns.DiagLines()
   out[#out + 1] = L["Always keep text in front: %s"]:format((ns.db or {}).textOnTop and L["on"] or L["off"])
   out[#out + 1] = ("%s: %s"):format(L["Fit text to bar"], (ns.db or {}).fitText and L["on"] or L["off"])
   -- (16.11.2026) the option blizzLook and the look the diagnostics window got, with the reason when it is the Kit's
-  out[#out + 1] = ("%s: %s (%s)"):format(L["Windows in the game's look"], (ns.db or {}).blizzLook and L["on"] or L["off"],
+  out[#out + 1] = ("%s: %s (%s)"):format(LookWord("Window style"), LookWord((ns.db or {}).blizzLook and "Blizzard look" or "Don look"),
     ns.DiagLook and ns.DiagLook() or "?")
   local abbr, full = ns.AbbrevSample()
   out[#out + 1] = L["Number abbreviation: %s (unabbreviated %s)"]:format(abbr, full)
@@ -259,7 +265,7 @@ function ns.DiagModel()
     (bbf.centerText or bbf.formatText) and "warning" or nil, bbfTip,
     bbf.loaded and L["Vitaldon keeps its text above the bar's fill. Details per bar in the Bars section."] or nil }
   -- (16.11.2026) the look of the windows: option and what was built
-  general.rows[#general.rows + 1] = { L["Windows in the game's look"], (ns.db or {}).blizzLook and L["on"] or L["off"], nil,
+  general.rows[#general.rows + 1] = { LookWord("Window style"), LookWord((ns.db or {}).blizzLook and "Blizzard look" or "Don look"), nil,
     { ns.DiagLook and ns.DiagLook() or "?" } }
 
   -- Bars: one row per unit (health and power together)
