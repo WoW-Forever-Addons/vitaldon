@@ -67,7 +67,7 @@ Vitaldons Text hängt als Kind direkt an der Leiste und liegt immer über ihr, a
 - Blizzards Statustext (Optionen > Interface > Statustext) kann sich mit Vitaldons Text überlagern. Dann zeigt `/vd` einen Hinweis und den Knopf "Statustext von Blizzard ausschalten" (im Kampf gesperrt).
 
 ## Bedienung
-- `/vd` oder `/vitaldon`: Optionen (auch Esc > Optionen > AddOns > Vitaldon). `/vd options` und `/vd config` tun dasselbe. Im Kampf lassen sich die Optionen nicht öffnen.
+- `/vd` oder `/vitaldon`: Optionen (öffnet nur das Fenster von Vitaldon; auch über Esc > Optionen > AddOns > Vitaldon, dort der Knopf "Optionen"). `/vd options` und `/vd config` tun dasselbe. Im Kampf lassen sich die Optionen nicht öffnen.
 - Seiten: Allgemein (Stil, Textfarbe, Zahlen, Zustände, Ebene), Einheiten, Text (Gesundheit, Energie, Druidenmana), Formate je Fenster, Schrift. Dazu zeigen die Optionen den Status (Version, gefundene Leisten, Blizzards Statustext) und Werkzeuge.
 - Werkzeuge: "Statustext von Blizzard ausschalten" (setzt `statusTextDisplay` auf `NONE` und `statusText` auf `0`, wie Blizzards Auswahl "Keiner"; nur auf Klick, im Kampf nicht möglich), "Einheitenfenster neu suchen", "Format-Vorschau", "Alle Formate zeigen" und "Diagnose".
 - `/vd preview`: Beispielwerte für 5 Sekunden auf deinem Spielerfenster (wie das Werkzeug "Format-Vorschau"), um Format, Position, Farbe und Schrift ohne Kampf zu sehen.

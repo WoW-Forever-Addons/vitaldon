@@ -1,5 +1,11 @@
 # Changes
 
+## 1.3.2
+
+- **One options window per addon:** the options button, the gear icon and `/vd` open only Vitaldon's own options. The game's AddOns list keeps a single button that leads there.
+- **Lists in the game's look:** group headers in the diagnostics lists look like the game's own bars, and wide tooltips appear beside the mouse.
+- **Shared Don library:** updated to the current version of the Don addons.
+
 ## 1.3.1
 
 - **One option for the window style:** the switch "Windows in the game's look" is now the choice "Window style" with "Don look" and "Blizzard look", named the same in every Don addon. Your setting stays as it was. `/vd diag` and the report name it too.

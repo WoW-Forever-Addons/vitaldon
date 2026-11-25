@@ -329,35 +329,18 @@ function ns.DrawPreview(f, w, h)
   Place(Block(inner, 2), inner, y + 10, bw, other, PREVIEW_OTHER, false)
 end
 
--- (16.11.2026, Blizzard look, Luredon/Options.lua) with the option blizzLook the options are the game's own settings
--- pages: every cog and /vd ends there. The pages are built in full at login (Settings 3 spec.fullPages), only where the
--- client has the templates (without them the windows are Don's and so is the options window); a change of the option
--- works for the options after a /reload.
-local fullPages = false
-local function Redirect() return ns.OpenGameOptions and ns.OpenGameOptions() or false end
-
 local function Build()
   for _, page in ipairs(PAGES) do page.preview = ns.DrawPreview end
   ns.settingsPages = PAGES
-  local spec = { name = "Vitaldon", status = Status, tools = TOOLS, pages = PAGES, help = Help, redirect = Redirect }
-  if ns.db and ns.db.blizzLook and ns.LookKit and select(2, ns.LookKit()) then spec.fullPages, fullPages = true, true end
+  local spec = { name = "Vitaldon", status = Status, tools = TOOLS, pages = PAGES, help = Help }
   category = ns.BuildSettings(spec)
   ns.settingsCategory = category ~= nil
 end
 
--- true when the game's settings were opened at Vitaldon (option blizzLook, pages built in full at login, not in combat)
-function ns.OpenGameOptions()
-  if not (ns.db and ns.db.blizzLook and fullPages and category and Settings and Settings.OpenToCategory) then return false end
-  if InCombatLockdown and InCombatLockdown() then ns.Print(L["Options cannot be opened in combat."]) return true end
-  Settings.OpenToCategory(category:GetID())
-  return true
-end
-function ns.OptionsLook() return fullPages and "game settings" or "don window" end
 
 -- (01.11.2026) DonCore's options window of all Don addons (no Blizzard panel, so also in combat); Blizzard's settings
 -- only when that window is not there (an older DonCore), and those stay closed in combat.
 function ns.OpenOptions()
-  if ns.OpenGameOptions() then return end -- (16.11.2026) the game's look: the game's settings
   if ns.OpenDonOptions and ns.OpenDonOptions() then return end
   if InCombatLockdown and InCombatLockdown() then
     ns.Print(L["Options cannot be opened in combat."])
